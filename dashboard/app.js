@@ -123,6 +123,61 @@ async function focusTabsByUrls(urls) {
  * Shows a brief pop-up notification at the bottom of the screen.
  * Like the little notification that pops up when you send a message.
  */
+/**
+ * playCloseSound()
+ *
+ * Plays a short, satisfying "swoosh-pop" sound when tabs are closed.
+ * Built entirely with the Web Audio API — no sound files needed.
+ * Think of it like the sound of sliding a card off a desk.
+ */
+function playCloseSound() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+    // Layer 1: a quick descending "swoosh" — white noise through a bandpass filter
+    const noiseLen = 0.15;
+    const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * noiseLen, ctx.sampleRate);
+    const noiseData = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < noiseData.length; i++) {
+      noiseData[i] = (Math.random() * 2 - 1) * (1 - i / noiseData.length); // fades out
+    }
+    const noiseSource = ctx.createBufferSource();
+    noiseSource.buffer = noiseBuffer;
+
+    const bandpass = ctx.createBiquadFilter();
+    bandpass.type = 'bandpass';
+    bandpass.frequency.setValueAtTime(3000, ctx.currentTime);
+    bandpass.frequency.exponentialRampToValueAtTime(800, ctx.currentTime + noiseLen);
+    bandpass.Q.value = 1.5;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.08, ctx.currentTime);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + noiseLen);
+
+    noiseSource.connect(bandpass).connect(noiseGain).connect(ctx.destination);
+    noiseSource.start(ctx.currentTime);
+
+    // Layer 2: a soft "pop" — short sine wave with quick pitch drop
+    const osc = ctx.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, ctx.currentTime + 0.05);
+    osc.frequency.exponentialRampToValueAtTime(200, ctx.currentTime + 0.2);
+
+    const oscGain = ctx.createGain();
+    oscGain.gain.setValueAtTime(0.12, ctx.currentTime + 0.05);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+
+    osc.connect(oscGain).connect(ctx.destination);
+    osc.start(ctx.currentTime + 0.05);
+    osc.stop(ctx.currentTime + 0.25);
+
+    // Clean up the audio context after sounds finish
+    setTimeout(() => ctx.close(), 500);
+  } catch {
+    // Audio not supported — fail silently
+  }
+}
+
 function showToast(message) {
   const toast = document.getElementById('toast');
   document.getElementById('toastText').textContent = message;
@@ -745,6 +800,7 @@ document.addEventListener('click', async (e) => {
 
     // Animate the card out — the mission is "done" once all tabs are closed
     if (card) {
+      playCloseSound();
       card.classList.add('closing');
       setTimeout(() => card.remove(), 400);
     }
@@ -802,6 +858,7 @@ document.addEventListener('click', async (e) => {
 
     // Animate the card out
     if (card) {
+      playCloseSound();
       card.classList.add('closing');
       setTimeout(() => card.remove(), 400);
     }
@@ -834,6 +891,7 @@ document.addEventListener('click', async (e) => {
 
     // Animate the card out
     if (card) {
+      playCloseSound();
       card.classList.add('closing');
       setTimeout(() => card.remove(), 400);
     }
@@ -867,6 +925,7 @@ document.addEventListener('click', async (e) => {
 
     // Animate card removal
     if (card) {
+      playCloseSound();
       card.classList.add('closing');
       setTimeout(() => card.remove(), 400);
     }
@@ -912,6 +971,8 @@ async function handleCloseAllStale() {
   if (staleUrls.length > 0) {
     await closeTabsByUrls(staleUrls);
   }
+
+  playCloseSound();
 
   // Hide the cleanup banner
   const banner = document.getElementById('cleanupBanner');
