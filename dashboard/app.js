@@ -1311,9 +1311,13 @@ document.addEventListener('click', async (e) => {
     return;
   }
 
-  // ---- close-all-open-tabs: close every tab across all AI missions ----
+  // ---- close-all-open-tabs: close every open tab (works in both static and AI view) ----
   if (action === 'close-all-open-tabs') {
-    const allUrls = openTabMissions.flatMap(m => (m.tabs || []).map(t => t.url));
+    // Use the actual openTabs list from the extension — works regardless of
+    // whether we're in static (domain-grouped) or AI (mission-grouped) view
+    const allUrls = openTabs
+      .filter(t => t.url && !t.url.startsWith('chrome') && !t.url.startsWith('about:'))
+      .map(t => t.url);
     await closeTabsByUrls(allUrls);
     playCloseSound();
 
