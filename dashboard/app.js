@@ -508,7 +508,17 @@ function renderOpenTabsMissionCard(mission, missionIndex) {
     const display = label.length > 45 ? label.slice(0, 45) + '…' : label;
     const dupeCount = dupeMap[tab.url];
     const dupeTag = dupeCount ? ` <span style="color:var(--accent-amber);font-weight:600">(${dupeCount}x)</span>` : '';
-    return `<span class="page-chip clickable" data-action="focus-tab" data-tab-url="${(tab.url || '').replace(/"/g, '&quot;')}" title="${label.replace(/"/g, '&quot;')}"><span class="chip-text">${display}${dupeTag}</span><button class="chip-close" data-action="close-single-tab" data-tab-url="${(tab.url || '').replace(/"/g, '&quot;')}" title="Close this tab">&times;</button></span>`;
+    const safeUrl = (tab.url || '').replace(/"/g, '&quot;');
+    const safeTitle = label.replace(/"/g, '&quot;');
+    return `<span class="page-chip clickable" data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
+      <span class="chip-text">${display}${dupeTag}</span>
+      <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
+      </button>
+      <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="Close this tab">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
+    </span>`;
   }).join('') + (extraCount > 0 ? `<span class="page-chip"><span class="chip-text">+${extraCount} more</span></span>` : '');
 
   // Use a stable ID based on mission name (not array index, which shifts when
@@ -523,6 +533,10 @@ function renderOpenTabsMissionCard(mission, missionIndex) {
   let actionsHtml = '';
   if (tabCount > 0) {
     actionsHtml += `
+      <button class="action-btn save-tabs" data-action="defer-mission-tabs" data-open-mission-id="${stableId}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
+        Save all for later
+      </button>
       <button class="action-btn close-tabs" data-action="close-open-tabs" data-open-mission-id="${stableId}">
         ${ICONS.close}
         Close all ${tabCount} tab${tabCount !== 1 ? 's' : ''}
@@ -840,15 +854,29 @@ function renderDomainCard(group, groupIndex) {
       ? ` <span style="color:var(--accent-amber);font-weight:600">(${count}x)</span>`
       : '';
     const chipStyle = count > 1 ? ' style="border-color: rgba(200, 113, 58, 0.3);"' : '';
-    return `<span class="page-chip clickable"${chipStyle} data-action="focus-tab" data-tab-url="${(tab.url || '').replace(/"/g, '&quot;')}" title="${label.replace(/"/g, '&quot;')}"><span class="chip-text">${display}${dupeTag}</span><button class="chip-close" data-action="close-single-tab" data-tab-url="${(tab.url || '').replace(/"/g, '&quot;')}" title="Close this tab">&times;</button></span>`;
+    const safeUrl = (tab.url || '').replace(/"/g, '&quot;');
+    const safeTitle = label.replace(/"/g, '&quot;');
+    return `<span class="page-chip clickable"${chipStyle} data-action="focus-tab" data-tab-url="${safeUrl}" title="${safeTitle}">
+      <span class="chip-text">${display}${dupeTag}</span>
+      <button class="chip-action chip-save" data-action="defer-single-tab" data-tab-url="${safeUrl}" data-tab-title="${safeTitle}" title="Save for later">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
+      </button>
+      <button class="chip-action chip-close" data-action="close-single-tab" data-tab-url="${safeUrl}" title="Close this tab">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+      </button>
+    </span>`;
   }).join('') + (extraCount > 0 ? `<span class="page-chip"><span class="chip-text">+${extraCount} more</span></span>` : '');
 
   // Use amber status bar if there are duplicates
   const statusBarClass = hasDupes ? 'active' : 'neutral';
   const statusBarStyle = hasDupes ? ' style="background: var(--accent-amber);"' : '';
 
-  // Actions: always show close all, add "Close duplicates" if dupes exist
+  // Actions: always show save all + close all, add "Close duplicates" if dupes exist
   let actionsHtml = `
+    <button class="action-btn save-tabs" data-action="defer-domain-tabs" data-domain-id="${stableId}">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:12px;height:12px"><path stroke-linecap="round" stroke-linejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0 1 11.186 0Z" /></svg>
+      Save all for later
+    </button>
     <button class="action-btn close-tabs" data-action="close-domain-tabs" data-domain-id="${stableId}">
       ${ICONS.close}
       Close all ${tabCount} tab${tabCount !== 1 ? 's' : ''}
