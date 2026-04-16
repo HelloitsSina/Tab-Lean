@@ -1,3 +1,25 @@
+/* This forces a Dark Mode theme */
+body {
+    background-color: #121212 !important; /* Deep dark grey/black */
+    color: #e0e0e0 !important;           /* Soft white text */
+}
+
+/* This makes sure any links or buttons are easy to see */
+a {
+    color: #bb86fc !important;           /* Light purple links */
+}
+
+button {
+    background-color: #333333 !important;
+    color: white !important;
+    border: 1px solid #444444 !important;
+}
+
+/* This targets main containers if they have white backgrounds */
+div, section, main {
+    background-color: transparent !important;
+    color: #e0e0e0 !important;
+}
 /* ============================================================
    Tab Mission Control — Dashboard Styles
    Extracted directly from mockup.html — do not modify unless
